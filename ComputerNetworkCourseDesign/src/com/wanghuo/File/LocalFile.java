@@ -2,6 +2,7 @@ package com.wanghuo.File;
 
 
 
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
@@ -51,13 +52,25 @@ public class LocalFile {
                 e.printStackTrace();
             }
     }
-    public void donePrint(){
+    public void doneCheckSize(long totalSize){
         try {
-            System.out.println("文件大小为" + randomAccessFile.length());
+            if(totalSize!=randomAccessFile.length())
+                System.out.println("下载的文件与获取的信息中文件的大小不同，请重试！");
+            else
+                System.out.println("下载的文件与获取的信息中文件的大小相同，文件大小为" + randomAccessFile.length());
         }catch ( IOException e){
             e.printStackTrace();
         }
     }
+
+    public void deletePartFile(int ThreadNumber){
+        for(int i=0;i<ThreadNumber;i++){
+            File partFile = new File(this.LocalPath+i);
+            if(!partFile.delete())
+                System.out.println(partFile.getName()+"删除失败~~");;
+        }
+    }
+
 //setLength 的作用？
     public void setLength(long length){
         try {

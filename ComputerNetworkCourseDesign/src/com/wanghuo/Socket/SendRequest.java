@@ -109,6 +109,7 @@ public class SendRequest extends Thread{
                 }
 //                downLoadFile.PrintFileMessage();
             }
+            /*
             System.out.println("开始整合文件！");
             byte[] buffer =new byte[1024*10];
             for(int i =0;i<ThreadNumbers;i++){
@@ -119,12 +120,16 @@ public class SendRequest extends Thread{
                     localFile.write(buffer,0,len);
                 }
             }
+             */
             long endTime=System.currentTimeMillis();
-            System.out.println("file is done !");
+            System.out.println("文件下载完成 !");
 
-            localFile.donePrint();
+            localFile.doneCheckSize(downLoadFile.getTotalSize());
+            //删除中间产生的文件
+            localFile.deletePartFile(downLoadFile.getThreadNumber());
+//          关闭本地文件
             localFile.close();
-            System.out.println("程序运行时间： "+(endTime-startTime)+"ms");
+            System.out.println("程序运行时间： "+(endTime-startTime)/1000+"s");
         }catch (InterruptedException e){
             e.printStackTrace();
         }

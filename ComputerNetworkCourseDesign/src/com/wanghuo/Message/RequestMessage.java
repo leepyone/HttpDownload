@@ -3,6 +3,7 @@ package com.wanghuo.Message;
 import com.wanghuo.URL.url;
 import com.wanghuo.tool.errorDeal;
 
+import java.io.*;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -67,6 +68,33 @@ public class RequestMessage {
         message.append("Range: bytes= " +start+"-"+end + "\r\n");
         message.append("\r\n");
         return message.toString();
+    }
+
+    public boolean partRequestMessageDeal(RandomAccessFile file,int ThreadNumber){
+//        提取出返回的状态码，进行判断
+        try {
+            String line="";
+            file.seek(0);
+            while((line =file.readLine())!=null){
+                Pattern pattern  = Pattern.compile("\\d{3}");
+                Matcher mather  = pattern.matcher(line);
+                if((line.indexOf("http")!=-1)){
+                    if(mather.find()){
+                        int number = Integer.parseInt(mather.group().trim());
+//                        if(number!=206)
+//                            System.out.println("线程"+ThreadNumber+"返回的状态码不是206是："+number);
+                        if(number>=300&&number<200){
+                            System.out.println("线程"+ThreadNumber+"返回的状态码不在200-300，是："+number+"故重新发送");
+                            return  false;
+                        }
+                    }
+                }
+
+            }
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+        return true;
     }
 
 }
