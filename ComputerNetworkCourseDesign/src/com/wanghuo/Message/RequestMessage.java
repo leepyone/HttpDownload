@@ -3,6 +3,7 @@ package com.wanghuo.Message;
 import com.wanghuo.URL.url;
 import com.wanghuo.tool.errorDeal;
 
+import java.io.*;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,6 +16,9 @@ public class RequestMessage {
 
     public RequestMessage(url url){
         this.url = url;
+    }
+    public long getTotalSize(){
+        return  this.totalSize;
     }
 
     public  String getHeadMessage(){
@@ -54,19 +58,71 @@ public class RequestMessage {
 
 
     }
-    public long getTotalSize(){
-        return  this.totalSize;
-    }
 
     public String getGetMessage(long start,long end){
         StringBuffer message = new StringBuffer();
         message.append("GET "+url.getPath()+" HTTP/1.1\r\n");
         message.append("Host: " + url.getHost() + " \r\n");
         message.append("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.117 Safari/537.36" + "\r\n");
-        message.append("Connection: Keep-Alive "  + "\r\n");
+        message.append("Connection: close "  + "\r\n");
         message.append("Range: bytes= " +start+"-"+end + "\r\n");
         message.append("\r\n");
         return message.toString();
     }
 
+    public boolean partRequestMessageDeal(RandomAccessFile file,int ThreadNumber){
+//        提取出返回的状态码，进行判断
+        try {
+            String line="";
+            file.seek(0);
+            while((line =file.readLine())!=null){
+                Pattern pattern  = Pattern.compile("\\d{3}");
+                Matcher mather  = pattern.matcher(line);
+                if((line.indexOf("http")!=-1)){
+                    if(mather.find()){
+                        int number = Integer.parseInt(mather.group().trim());
+//                        if(number!=206)
+//                            System.out.println("线程"+ThreadNumber+"返回的状态码不是206是："+number);
+                        if(number>=300&&number<200){
+                            System.out.println("线程"+ThreadNumber+"返回的状态码不在200-300，是："+number+"故重新发送");
+                            return  false;
+                        }
+                    }
+                }
+
+            }
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+        return true;
+    }
+
+    public String  getPostMessage(String data){
+
+        StringBuffer message = new StringBuffer();
+        message.append("POST " + url.getPath() + " HTTP/1.1\r\n");
+        message.append("Host: " + url.getHost()+":"+url.getPort() + "\r\n");
+        message.append("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36 Edg/83.0.478.37"+"\r\n");
+        message.append("Content-Length: " + data.length() + "\r\n");
+        message.append("Content-Type: application/x-www-form-urlencoded\r\n");
+        message.append("Connection: Keep-Alive\r\n");
+        message.append("\r\n");
+        message.append(data);
+        message.append("\r\n");
+        return message.toString();
+    }
+
+    public String messageDeal(List<String> list){
+        if(list.isEmpty())
+            System.out.println("传入的list为空！");
+        String message ="";
+        for(int i =0;i<list.size();i++){
+            if(i==list.size()-1){
+                message+=list.get(i);
+                break;
+            }
+            message+=list.get(i)+"&";
+        }
+        return message;
+    }
 }

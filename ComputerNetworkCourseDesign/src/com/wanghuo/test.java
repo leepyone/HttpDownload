@@ -5,21 +5,33 @@ import com.wanghuo.Socket.SingleThread;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 public class test {
     public static void main(String[] args) throws FileNotFoundException, IOException {
 //        mulThreads mulThreads = new mulThreads();
 //        mulThreads.run();
-        RandomAccessFile testFile = new RandomAccessFile("D:\\test\\QQMusic_YQQWinPCDL.exe","rwd");
-        byte[] buffer = new byte[1024*10];
-        for(int i =0;i<3;i++){
-            String fileName = "D:\\test\\QQMusic_YQQWinPCDL.exe"+i;
-            RandomAccessFile part = new RandomAccessFile(fileName,"rwd");
-            int len=0;
-            while((len=part.read(buffer))!=-1){
-                testFile.write(buffer,0,len);
-            }
+//        RandomAccessFile testFile = new RandomAccessFile("D:\\test\\test.exe","rwd");
+//        byte[] buffer = new byte[1024*10];
+//        for(int i =0;i<4;i++){
+//            String fileName = "D:\\test\\BaiduNetdisk_6.9.7.4.exe"+i;
+//            RandomAccessFile part = new RandomAccessFile(fileName,"rwd");
+//            int len=0;
+//            while((len=part.read(buffer))!=-1){
+//                testFile.write(buffer,0,len);
+//            }
+//        }
+        Scanner sc = new Scanner(System.in);
+        List<String>  lineList = new ArrayList<>();
+        while( sc.hasNextLine()){
+            String line = sc.nextLine();
+            if(line.isEmpty())
+                break;
+            lineList.add(line);
         }
+        System.out.println(lineList.size());
     }
 }
 class mulThreads extends Thread{

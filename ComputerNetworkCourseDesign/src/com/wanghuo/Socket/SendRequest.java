@@ -29,7 +29,9 @@ public class SendRequest extends Thread{
         this.LocalPath = LocalPath;
     }
 
-
+/*
+创建依据传入的协议来判断创建什么类型的协议。但是https的协议无法解析
+ */
     private Socket Connect(){
         Socket socket=null;
         try {
@@ -47,6 +49,7 @@ public class SendRequest extends Thread{
         return socket;
     }
 
+//    发送一个head请求来获得请求文件的基本信息
     private void  SendHead() throws IOException {
 //        根据head请求 返回的信息和url信息完成对downLoadFile的初始化
         Socket socket = Connect();
@@ -85,8 +88,10 @@ public class SendRequest extends Thread{
         long[] endPos =new long[ThreadNumbers];
         downLoadFile.setEndPos(endPos);
         downLoadFile.setStartPos(startPos);
+//        计算起始终止位置
         this.downLoadFile.positionCalculate();
         this.downLoadFile.PrintFileMessage();
+//        获得get的message
         RequestMessage requestMessage = new RequestMessage(url);
         long pointer = 0;
         LocalFile localFile = new LocalFile(url.getFileName(),LocalPath,pointer);
@@ -109,6 +114,7 @@ public class SendRequest extends Thread{
                 }
 //                downLoadFile.PrintFileMessage();
             }
+            /*
             System.out.println("开始整合文件！");
             byte[] buffer =new byte[1024*10];
             for(int i =0;i<ThreadNumbers;i++){
@@ -119,17 +125,72 @@ public class SendRequest extends Thread{
                     localFile.write(buffer,0,len);
                 }
             }
+             */
             long endTime=System.currentTimeMillis();
-            System.out.println("file is done !");
+            System.out.println("文件下载完成 !");
 
-            localFile.donePrint();
+            localFile.doneCheckSize(downLoadFile.getTotalSize());
+            //删除中间产生的文件
+            localFile.deletePartFile(downLoadFile.getThreadNumber());
+//          关闭本地文件
             localFile.close();
-            System.out.println("程序运行时间： "+(endTime-startTime)+"ms");
+            System.out.println("程序运行时间： "+(endTime-startTime)/1000+"s");
         }catch (InterruptedException e){
             e.printStackTrace();
         }
+    }
+//发送post请求
+    public void SendPost(List<String> message){
+    /*
+        String path = "/zhigang/postDemo.php";
+        String data = URLEncoder.encode("name", "utf-8") + "=" + URLEncoder.encode("gloomyfish", "utf-8") + "&" +
+                URLEncoder.encode("age", "utf-8") + "=" + URLEncoder.encode("32", "utf-8");
+        // String data = "name=zhigang_jia";
+        SocketAddress dest = new InetSocketAddress(this.host, this.port);
+        socket.connect(dest);
+        OutputStreamWriter streamWriter = new OutputStreamWriter(socket.getOutputStream(), "utf-8");
+        bufferedWriter = new BufferedWriter(streamWriter);
 
+        bufferedWriter.write("POST " + path + " HTTP/1.1\r\n");
+        bufferedWriter.write("Host: " + this.host + "\r\n");
+        bufferedWriter.write("Content-Length: " + data.length() + "\r\n");
+        bufferedWriter.write("Content-Type: application/x-www-form-urlencoded\r\n");
+        bufferedWriter.write("\r\n");
+        bufferedWriter.write(data);
+        bufferedWriter.flush();
+        bufferedWriter.write("\r\n");
+        bufferedWriter.flush();
 
+        BufferedInputStream streamReader = new BufferedInputStream(socket.getInputStream());
+        bufferedReader = new BufferedReader(new InputStreamReader(streamReader, "utf-8"));
+        String line = null;
+        while((line = bufferedReader.readLine())!= null)
+        {
+            System.out.println(line);
+        }
+        bufferedReader.close();
+        bufferedWriter.close();
+        socket.close();
+     */
+        RequestMessage PostMessage = new RequestMessage(url);
+        String postMessage = PostMessage.getPostMessage(PostMessage.messageDeal(message));
+        Socket socket = Connect();
+        OutputStream outputStream = null;
+        BufferedReader bufferedReader=null ;
+        try {
+            outputStream = socket.getOutputStream();
+            outputStream.write(postMessage.getBytes());
+            outputStream.flush();
+            bufferedReader  = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            String line ="";
+            while((line = bufferedReader.readLine())!=null){
+                System.out.println(line);
+            }
+        }catch (UnknownHostException e ){
+            e.printStackTrace();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -193,3 +254,19 @@ public class SendRequest extends Thread{
 
     }
 }
+/*
+http://localhost:8080/emp
+lastName=wang
+email=1679108504%40qq.com
+gender=1
+department.id=102
+birth=2019%2F02%2F02
+ */
+
+//POST /emp HTTP/1.1
+//Host: localhost:8080
+//User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36 Edg/83.0.478.37
+//Content-Length: 87
+//Content-Type: application/x-www-form-urlencoded
+//
+//lastName=wang&email=1679108504%40qq.com&gender=1&department.id=102&birth=2019%2F02%2F02
